@@ -108,12 +108,12 @@ def submit_resume():
     enhanced_resume_latex = enhance_resume(resume_content, job_description)
 
     # Store the original resume in the database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO resumes (user_id, content, created_at) VALUES (?, ?, ?)',
-                   (user_id, resume_content, datetime.utcnow().isoformat()))
-    conn.commit()
-    conn.close()
+    # conn = sqlite3.connect(db_path)
+    # cursor = conn.cursor()
+    # cursor.execute('INSERT INTO resumes (user_id, content, created_at) VALUES (?, ?, ?)',
+    #                (user_id, resume_content, datetime.utcnow().isoformat()))
+    # conn.commit()
+    # conn.close()
 
     # Return the enhanced resume LaTeX content
     return jsonify({"enhanced_resume_latex": enhanced_resume_latex}), 200
