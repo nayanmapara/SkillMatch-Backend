@@ -12,7 +12,7 @@ generation_config = {
     "top_p": 0.95,
     "top_k": 64,
     "max_output_tokens": 8192,
-    "response_mime_type": "application/json",
+    "response_mime_type": "text/plain",
 }
 
 model = genai.GenerativeModel(
@@ -25,7 +25,6 @@ def enhance_resume(resume_content, job_description):
         history=[
         ]
     )
-
 
     input_text = r"""
     Enhance the following resume content based on the provided job description and format it in LaTeX as specified below.
@@ -115,10 +114,6 @@ def enhance_resume(resume_content, job_description):
     \\end{{document}}
     """
 
-    print(input_text)
-
     response = chat_session.send_message(input_text)
-
-    print(response.text)
 
     return response.text
