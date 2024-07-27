@@ -45,7 +45,7 @@ init_db()
 
 @app.route('/')
 def index():
-    return redirect("https://skill-match-resume.vercel.app", code=302)
+    return "Welcome to the SkillMatch-Resume API!"
 
 @app.route('/signup', methods=['POST'])
 def signup():
