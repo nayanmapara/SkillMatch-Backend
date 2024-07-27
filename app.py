@@ -5,8 +5,8 @@ import os
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import subprocess
-import tempfile
+# import subprocess
+# import tempfile
 
 # Import the AI service
 from funcs.ai_service import enhance_resume
