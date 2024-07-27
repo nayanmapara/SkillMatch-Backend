@@ -25,7 +25,7 @@ def enhance_resume(resume_content, job_description):
         history=[
         ]
     )
-    input_text = f"Enhance the following resume content based on this job description:\n\nResume Content:\n{resume_content}\n\nJob Description:\n{job_description} and make the response into a latex format."
+    input_text = f"Enhance the following resume content based on this job description:\n\nResume Content:\n{resume_content}\n\nJob Description:\n{job_description} and make the response into json format."
     response = chat_session.send_message(input_text)
 
     print(response.text)
