@@ -1,6 +1,11 @@
 Flask
+
 pymongo[srv]
 Flask-PyMongo
 python-dotenv
+
 gunicorn
 flask-cors
+
+google-generativeai
+werkzeug
