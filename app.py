@@ -20,7 +20,8 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB setup
-mongo_uri = os.getenv("MONGO_URI")
+mongo_uri = os.environ["MONGODB_URI"]
+print(mongo_uri)
 db_name = os.getenv("DB")
 db_collection = os.getenv("COLLECTION")
 client = MongoClient(mongo_uri)
@@ -104,5 +105,5 @@ def submit_resume():
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    # app.run(debug=True)
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
+    # app.run(host="0.0.0.0", port=5000)
