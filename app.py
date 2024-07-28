@@ -21,7 +21,6 @@ CORS(app)
 
 # MongoDB setup
 mongo_uri = os.environ["MONGODB_URI"]
-print(mongo_uri)
 db_name = os.getenv("DB")
 db_collection = os.getenv("COLLECTION")
 client = MongoClient(mongo_uri)
