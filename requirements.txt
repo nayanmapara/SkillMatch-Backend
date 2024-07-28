@@ -9,4 +9,3 @@ flask-cors
 
 google-generativeai
 werkzeug
-sqllite3
