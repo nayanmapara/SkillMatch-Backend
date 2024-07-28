@@ -4,7 +4,7 @@ import os
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from pymongo import MongoClient
+import sqlite3
 import logging
 
 # Import the AI service
@@ -19,14 +19,20 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)
 
-# MongoDB setup
-mongo_uri = os.getenv("MONGO_URI")
-db_name = os.getenv("DB")
-db_collection = os.getenv("COLLECTION")
-client = MongoClient(mongo_uri)
-db = client[db_name]
-users_collection = db[db_collection]
-# resumes_collection = db.resumes
+# SQLite setup
+DATABASE = 'database.db'
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    with app.app_context():
+        db = get_db()
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.executescript(f.read())
+        db.commit()
 
 @app.route('/')
 def index():
@@ -40,19 +46,18 @@ def signup():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
-    if users_collection.find_one({"email": email}):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+
+    if user:
         return jsonify({"error": "User already exists"}), 400
 
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-    user = {
-        "email": email,
-        "password": hashed_password,
-        "created_at": datetime.utcnow().isoformat()
-    }
-
     try:
-        users_collection.insert_one(user)
+        db.execute('INSERT INTO users (email, password, created_at) VALUES (?, ?, ?)',
+                   (email, hashed_password, datetime.utcnow().isoformat()))
+        db.commit()
         logging.info(f"User {email} created successfully.")
     except Exception as e:
         logging.error(f"Error creating user: {str(e)}")
@@ -68,12 +73,13 @@ def login():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
-    user = users_collection.find_one({"email": email})
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
 
-    if not user or not check_password_hash(user["password"], password):
+    if not user or not check_password_hash(user['password'], password):
         return jsonify({"error": "Invalid email or password"}), 401
 
-    return jsonify({"message": "Login successful", "user_id": str(user["_id"])}), 200
+    return jsonify({"message": "Login successful", "user_id": user['id']}), 200
 
 @app.route('/submit_resume', methods=['POST'])
 def submit_resume():
@@ -89,12 +95,10 @@ def submit_resume():
         enhanced_resume_latex = enhance_resume(resume_content, job_description)
 
         # Store the original resume in the database
-        resume = {
-            "user_id": user_id,
-            "content": resume_content,
-            "created_at": datetime.utcnow().isoformat()
-        }
-        # resumes_collection.insert_one(resume)
+        db = get_db()
+        db.execute('INSERT INTO resumes (user_id, content, created_at) VALUES (?, ?, ?)',
+                   (user_id, resume_content, datetime.utcnow().isoformat()))
+        db.commit()
 
         logging.info(f"Resume for user {user_id} submitted and enhanced successfully.")
         # Return the enhanced resume LaTeX content
@@ -104,5 +108,6 @@ def submit_resume():
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
+    init_db()
     # app.run(debug=True)
     app.run(host="0.0.0.0", port=5000)
