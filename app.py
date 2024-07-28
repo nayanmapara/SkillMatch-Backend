@@ -73,12 +73,11 @@ def login():
 
 @app.route('/submit_resume', methods=['POST'])
 def submit_resume():
-    user_id = request.json.get('user_id')
     resume_content = request.json.get('resume_content')
     job_description = request.json.get('job_description')
 
-    if not user_id or not resume_content or not job_description:
-        return jsonify({"error": "User ID, resume content, and job description are required"}), 400
+    if not resume_content or not job_description:
+        return jsonify({"error": "Resume content and job description are required"}), 400
 
     try:
         # Call the AI to enhance the resume
@@ -86,13 +85,12 @@ def submit_resume():
 
         # Store the original resume in the database
         resume = {
-            "user_id": user_id,
             "content": resume_content,
             "created_at": datetime.utcnow().isoformat()
         }
-        # resumes_collection.insert_one(resume)
+        # resumes_collection.insert_one(resume)  # Uncomment if needed
 
-        logging.info(f"Resume for user {user_id} submitted and enhanced successfully.")
+        logging.info(f"Resume submitted and enhanced successfully.")
         # Return the enhanced resume LaTeX content
         return jsonify({"enhanced_resume_latex": enhanced_resume_latex}), 200
     except Exception as e:
