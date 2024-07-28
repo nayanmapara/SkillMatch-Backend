@@ -35,19 +35,15 @@ def index():
 @app.route('/signup', methods=['POST'])
 def signup():
     email = request.json.get('email')
-    password = request.json.get('password')
 
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
     if users_collection.find_one({"email": email}):
         return jsonify({"error": "User already exists"}), 400
 
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-
     user = {
         "email": email,
-        "password": hashed_password,
         "created_at": datetime.utcnow().isoformat()
     }
 
@@ -63,17 +59,17 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     email = request.json.get('email')
-    password = request.json.get('password')
 
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
     user = users_collection.find_one({"email": email})
 
-    if not user or not check_password_hash(user["password"], password):
-        return jsonify({"error": "Invalid email or password"}), 401
+    if not user:
+        return jsonify({"error": "Invalid email"}), 401
 
     return jsonify({"message": "Login successful", "user_id": str(user["_id"])}), 200
+
 
 @app.route('/submit_resume', methods=['POST'])
 def submit_resume():
