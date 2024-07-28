@@ -5,13 +5,18 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from pymongo import MongoClient
+import logging
 
 # Import the AI service
 from funcs.ai_service import enhance_resume
 
+# Load environment variables
 load_dotenv()
-app = Flask(__name__)
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+app = Flask(__name__)
 CORS(app)
 
 # MongoDB setup
@@ -45,7 +50,13 @@ def signup():
         "password": hashed_password,
         "created_at": datetime.utcnow().isoformat()
     }
-    print(users_collection.insert_one(user))
+
+    try:
+        users_collection.insert_one(user)
+        logging.info(f"User {email} created successfully.")
+    except Exception as e:
+        logging.error(f"Error creating user: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
     return jsonify({"message": "User created successfully"}), 201
 
@@ -73,19 +84,24 @@ def submit_resume():
     if not user_id or not resume_content or not job_description:
         return jsonify({"error": "User ID, resume content, and job description are required"}), 400
 
-    # Call the AI to enhance the resume
-    enhanced_resume_latex = enhance_resume(resume_content, job_description)
+    try:
+        # Call the AI to enhance the resume
+        enhanced_resume_latex = enhance_resume(resume_content, job_description)
 
-    # Store the original resume in the database
-    resume = {
-        "user_id": user_id,
-        "content": resume_content,
-        "created_at": datetime.utcnow().isoformat()
-    }
-    # resumes_collection.insert_one(resume)
+        # Store the original resume in the database
+        resume = {
+            "user_id": user_id,
+            "content": resume_content,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        # resumes_collection.insert_one(resume)
 
-    # Return the enhanced resume LaTeX content
-    return jsonify({"enhanced_resume_latex": enhanced_resume_latex}), 200
+        logging.info(f"Resume for user {user_id} submitted and enhanced successfully.")
+        # Return the enhanced resume LaTeX content
+        return jsonify({"enhanced_resume_latex": enhanced_resume_latex}), 200
+    except Exception as e:
+        logging.error(f"Error enhancing resume: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     # app.run(debug=True)
